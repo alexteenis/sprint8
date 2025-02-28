@@ -1,0 +1,53 @@
+# Cargar librerías necesarias
+library(forecast)
+library(ggplot2)
+
+# Paso 1: Configurar el entorno de trabajo
+# Cargar el dataset de concentración de CO2
+data(co2)
+
+# Ver la estructura y el resumen de los datos
+str(co2)
+summary(co2)
+
+# Paso 2: Explorar y visualizar los datos
+# Visualizar la serie temporal para observar la tendencia y estacionalidad
+plot(co2, main="Concentración de CO2 en Mauna Loa", ylab="Concentración de CO2", xlab="Año")
+
+# Paso 3: Reajustar la serie temporal
+# Verificar si existen valores faltantes y tratarlos si es necesario
+sum(is.na(co2))  # Verifica si hay NA en los datos
+# Si hay valores faltantes, puedes interpolarlos utilizando na.approx() o de alguna otra forma
+
+# Paso 4: Descomposición de la serie temporal
+# Descomponer la serie temporal en componentes de tendencia, estacionalidad y residuos
+decomposed <- decompose(co2)
+
+# Visualizar los componentes
+plot(decomposed)
+
+# Paso 5: Ajustar un modelo predictivo (suavizado exponencial)
+# Ajustar el modelo de suavizado exponencial (Holt-Winters)
+model_hw <- HoltWinters(co2)
+
+# Ver el resumen del modelo ajustado
+summary(model_hw)
+
+# Visualizar las predicciones ajustadas sobre los datos históricos
+plot(model_hw)
+
+# Paso 6: Predicciones y visualización
+# Realizar predicciones para los próximos 12 meses
+forecast_hw <- forecast(model_hw, h=12)
+
+# Visualizar las predicciones junto con los datos históricos
+plot(forecast_hw, main="Predicción de CO2 para los próximos 12 meses")
+
+# Paso 7: Evaluación del modelo
+# Calcular métricas de desempeño: RMSE y MAE
+rmse <- sqrt(mean((forecast_hw$mean - tail(co2, 12))^2))  # RMSE
+mae <- mean(abs(forecast_hw$mean - tail(co2, 12)))  # MAE
+
+# Mostrar las métricas
+cat("RMSE: ", rmse, "\n")
+cat("MAE: ", mae, "\n")
